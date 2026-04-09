@@ -20,6 +20,7 @@ export default function HomeQuickActions() {
       <Link href="/wallet"><Button className="w-full">View Wallet</Button></Link>
       <Link href="/tickets"><Button variant="secondary" className="w-full">My Tickets</Button></Link>
       <Link href="/deposits"><Button variant="secondary" className="w-full">Deposits</Button></Link>
+      <Link href="/withdrawals"><Button variant="secondary" className="w-full">Withdrawals</Button></Link>
       {!user && (
         <Link href="/auth/login"><Button variant="outline" className="w-full">Login</Button></Link>
       )}

@@ -8,8 +8,12 @@ export default function AnnouncementTicker() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [phase, setPhase] = useState<"intro" | "loop">("intro");
   const [sizes, setSizes] = useState({ cw: 0, sw: 0 });
+  const [marqueeShiftPx, setMarqueeShiftPx] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const introSpanRef = useRef<HTMLSpanElement>(null);
+  const loopTrackRef = useRef<HTMLDivElement>(null);
+  const sizesRef = useRef(sizes);
+  sizesRef.current = sizes;
 
   const load = useCallback(async () => {
     try {
@@ -42,6 +46,7 @@ export default function AnnouncementTicker() {
   useEffect(() => {
     setPhase("intro");
     setSizes({ cw: 0, sw: 0 });
+    setMarqueeShiftPx(0);
   }, [line]);
 
   const measure = useCallback(() => {
@@ -62,8 +67,20 @@ export default function AnnouncementTicker() {
     return () => ro.disconnect();
   }, [measure, line, phase]);
 
+  useLayoutEffect(() => {
+    if (phase !== "loop") return;
+    const track = loopTrackRef.current;
+    const first = track?.querySelector("span");
+    if (!first) return;
+    const w = first.offsetWidth;
+    if (w <= 0) return;
+    setMarqueeShiftPx((prev) => (prev > 0 ? prev : w));
+  }, [phase, line]);
+
   const handleIntroEnd = (e: React.AnimationEvent<HTMLDivElement>) => {
     if (!e.animationName.includes("announcement-intro")) return;
+    const sw = sizesRef.current.sw;
+    if (sw > 0) setMarqueeShiftPx(sw);
     setPhase("loop");
   };
 
@@ -72,16 +89,27 @@ export default function AnnouncementTicker() {
   const readyIntro = phase === "intro" && sizes.cw > 0 && sizes.sw > 0;
 
   return (
-    <div className="relative z-10 w-full border-b border-indigo-200/80 bg-indigo-600/90 text-white dark:border-indigo-900/60 dark:bg-indigo-950/90">
-      <div ref={containerRef} className="w-full overflow-hidden py-2">
+    <div className="relative z-10 min-w-0 w-full border-b border-indigo-200/80 bg-indigo-600/90 text-white dark:border-indigo-900/60 dark:bg-indigo-950/90">
+      <div ref={containerRef} className="min-w-0 w-full overflow-hidden py-2">
         {phase === "loop" ? (
-          <div className="announcement-loop-track">
-            <span className="inline-block shrink-0 whitespace-nowrap px-6 text-sm font-medium">
-              {line}
-            </span>
-            <span className="inline-block shrink-0 whitespace-nowrap px-6 text-sm font-medium" aria-hidden>
-              {line}
-            </span>
+          <div
+            ref={loopTrackRef}
+            className="announcement-loop-track"
+            style={
+              (marqueeShiftPx > 0
+                ? { "--marquee-shift": `${marqueeShiftPx}px` }
+                : {}) as React.CSSProperties
+            }
+          >
+            {[0, 1].map((i) => (
+              <span
+                key={i}
+                className="inline-block shrink-0 whitespace-nowrap px-6 text-sm font-medium"
+                aria-hidden={i === 1 ? true : undefined}
+              >
+                {line}
+              </span>
+            ))}
           </div>
         ) : readyIntro ? (
           <div

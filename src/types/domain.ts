@@ -105,6 +105,27 @@ export type DepositRequest = {
   createdAt: string;
 };
 
+export type UserSavedWallet = {
+  _id: string;
+  type: "usdt";
+  network: "TRC20" | "ERC20" | "BEP20";
+  label: string;
+  walletAddress: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type WithdrawalRequest = {
+  _id: string;
+  amount: number;
+  network: string;
+  destinationAddress: string;
+  status: string;
+  createdAt: string;
+  userWalletId?: UserSavedWallet | string;
+  userId?: { username: string } | string;
+};
+
 export type Announcement = {
   _id: string;
   body: string;

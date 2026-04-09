@@ -13,8 +13,11 @@ export default function AdminPage() {
   const {
     user,
     adminDepositRequests,
+    adminWithdrawalRequests,
     approveDeposit,
     rejectDeposit,
+    approveWithdrawal,
+    rejectWithdrawal,
     adminPlatformWallets,
     createAdminPlatformWallet,
     deleteAdminPlatformWallet,
@@ -23,6 +26,8 @@ export default function AdminPage() {
     adminAnnouncements,
     isApprovingDeposit,
     isRejectingDeposit,
+    isApprovingWithdrawal,
+    isRejectingWithdrawal,
     isCreatingPlatformWallet,
     isDeletingPlatformWallet,
     isCreatingAnnouncement,
@@ -152,7 +157,10 @@ export default function AdminPage() {
       <Card>
         <CardHeader>
           <CardTitle>Admin Deposit Queue</CardTitle>
-          <CardDescription>Approve or reject pending user deposit requests.</CardDescription>
+          <CardDescription>
+            Approve or reject pending deposit requests (10–10,000 USDT per request). First approved deposit
+            triggers the welcome bonus on credit.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {adminDepositRequests.map((request) => (
@@ -180,6 +188,58 @@ export default function AdminPage() {
               )}
             </div>
           ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Withdrawal queue</CardTitle>
+          <CardDescription>
+            Approve after sending USDT off-chain to the user&apos;s address. Approving debits their
+            balance; rejecting leaves funds unchanged.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {adminWithdrawalRequests.length === 0 ? (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">No withdrawal requests.</p>
+          ) : (
+            adminWithdrawalRequests.map((request) => {
+              const username =
+                typeof request.userId === "object" && request.userId && "username" in request.userId
+                  ? request.userId.username
+                  : "—";
+              return (
+                <div
+                  key={request._id}
+                  className="rounded-lg border border-zinc-300 p-3 text-sm dark:border-zinc-800"
+                >
+                  <p className="font-medium">
+                    {username} · {request.amount} USDT · {request.network}
+                  </p>
+                  <p className="break-all text-zinc-600 dark:text-zinc-400">{request.destinationAddress}</p>
+                  <p className="text-xs text-zinc-500">Status: {request.status}</p>
+                  {request.status === "pending" && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        disabled={isApprovingWithdrawal}
+                        onClick={() => approveWithdrawal(request._id).catch(() => {})}
+                      >
+                        {isApprovingWithdrawal ? "Approving..." : "Approve (debit user)"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={isRejectingWithdrawal}
+                        onClick={() => rejectWithdrawal(request._id).catch(() => {})}
+                      >
+                        {isRejectingWithdrawal ? "Rejecting..." : "Reject"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </CardContent>
       </Card>
       <Card>

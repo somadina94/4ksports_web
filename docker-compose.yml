@@ -8,7 +8,6 @@ services:
       args:
         - NEXT_PUBLIC_BACKEND_ORIGIN=${NEXT_PUBLIC_BACKEND_ORIGIN}
         - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
-
     container_name: 4ksports-web
     ports:
       - "4701:4701"

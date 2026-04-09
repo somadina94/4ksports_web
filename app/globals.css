@@ -72,21 +72,22 @@ body {
   transform-origin: left center;
 }
 
-/* Phase 2: duplicated line — enters from off-screen right, loops faster. */
+/* Phase 2: one segment width via --marquee-shift (px) for a gapless loop (avoids % rounding / stray flex gaps). */
 @keyframes announcement-loop {
   from {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(calc(-1 * var(--marquee-shift, 0px)));
   }
 }
 
 .announcement-loop-track {
-  display: flex;
+  display: inline-flex;
   width: max-content;
   flex-shrink: 0;
-  margin-left: 100%;
+  flex-wrap: nowrap;
+  gap: 0;
   transform-origin: left center;
   animation: announcement-loop 22s linear infinite;
 }

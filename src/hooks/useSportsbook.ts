@@ -19,6 +19,8 @@ import type {
   PlatformWallet,
   Ticket,
   TicketSelectionDetail,
+  UserSavedWallet,
+  WithdrawalRequest,
 } from "@/src/types/domain";
 
 export type SelectionDraft = {
@@ -50,6 +52,11 @@ export const useSportsbook = () => {
   const [adminPlatformWallets, setAdminPlatformWallets] = useState<PlatformWallet[]>([]);
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([]);
   const [adminDepositRequests, setAdminDepositRequests] = useState<DepositRequest[]>([]);
+  const [userSavedWallets, setUserSavedWallets] = useState<UserSavedWallet[]>([]);
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
+  const [adminWithdrawalRequests, setAdminWithdrawalRequests] = useState<WithdrawalRequest[]>(
+    [],
+  );
   const [selections, setSelections] = useState<SelectionDraft[]>([]);
   const [stake, setStake] = useState("10");
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -58,6 +65,10 @@ export const useSportsbook = () => {
   const [isSubmittingDeposit, setIsSubmittingDeposit] = useState(false);
   const [isApprovingDeposit, setIsApprovingDeposit] = useState(false);
   const [isRejectingDeposit, setIsRejectingDeposit] = useState(false);
+  const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState(false);
+  const [isCreatingUserWallet, setIsCreatingUserWallet] = useState(false);
+  const [isApprovingWithdrawal, setIsApprovingWithdrawal] = useState(false);
+  const [isRejectingWithdrawal, setIsRejectingWithdrawal] = useState(false);
   const [isCreatingPlatformWallet, setIsCreatingPlatformWallet] = useState(false);
   const [isDeletingPlatformWallet, setIsDeletingPlatformWallet] = useState(false);
   const [isCreatingAnnouncement, setIsCreatingAnnouncement] = useState(false);
@@ -119,7 +130,10 @@ export const useSportsbook = () => {
       txRes,
       myDepRes,
       adminDepRes,
+      myWalletsRes,
+      myWithdrawalsRes,
       adminWalletsRes,
+      adminWithdrawalsRes,
       adminAnnouncementsRes,
     ] = await Promise.all([
       apiFetch<ApiResponse<{ tickets: Ticket[] }>>("/tickets/me", { token: authToken }),
@@ -138,9 +152,18 @@ export const useSportsbook = () => {
       apiFetch<ApiResponse<{ requests: DepositRequest[] }>>("/admin/deposit-requests", {
         token: authToken,
       }).catch(() => ({ status: "fail", data: { requests: [] } })),
+      apiFetch<ApiResponse<{ wallets: UserSavedWallet[] }>>("/wallets", {
+        token: authToken,
+      }).catch(() => ({ status: "fail", data: { wallets: [] } })),
+      apiFetch<ApiResponse<{ requests: WithdrawalRequest[] }>>("/withdrawal-requests/me", {
+        token: authToken,
+      }).catch(() => ({ status: "fail", data: { requests: [] } })),
       apiFetch<ApiResponse<{ wallets: PlatformWallet[] }>>("/admin/platform-wallets", {
         token: authToken,
       }).catch(() => ({ status: "fail", data: { wallets: [] } })),
+      apiFetch<ApiResponse<{ requests: WithdrawalRequest[] }>>("/admin/withdrawal-requests", {
+        token: authToken,
+      }).catch(() => ({ status: "fail", data: { requests: [] } })),
       apiFetch<ApiResponse<{ announcements: Announcement[] }>>("/admin/announcements", {
         token: authToken,
       }).catch(() => ({ status: "fail", data: { announcements: [] } })),
@@ -150,7 +173,10 @@ export const useSportsbook = () => {
     setTransactions(txRes.data.transactions);
     setDepositRequests(myDepRes.data.requests);
     setAdminDepositRequests(adminDepRes.data.requests);
+    setUserSavedWallets(myWalletsRes.data.wallets ?? []);
+    setWithdrawalRequests(myWithdrawalsRes.data.requests ?? []);
     setAdminPlatformWallets(adminWalletsRes.data.wallets);
+    setAdminWithdrawalRequests(adminWithdrawalsRes.data.requests ?? []);
     setAdminAnnouncements(adminAnnouncementsRes.data.announcements ?? []);
   };
 
@@ -177,6 +203,37 @@ export const useSportsbook = () => {
       throw error;
     } finally {
       setIsAuthSubmitting(false);
+    }
+  };
+
+  const updatePassword = async (payload: {
+    passwordCurrent: string;
+    password: string;
+    passwordConfirm: string;
+  }) => {
+    if (!token) throw new Error("Login required.");
+    try {
+      const res = await apiFetch<
+        ApiResponse<{ user: AuthUser }> & { token?: string }
+      >("/users/update-password", {
+        method: "PATCH",
+        token,
+        body: payload,
+      });
+      if (res.token) {
+        setToken(res.token);
+        persistToken(res.token);
+      }
+      if (res.data?.user) {
+        setUser(res.data.user);
+        persistAuthUser(res.data.user);
+      }
+      const nextToken = res.token ?? token;
+      await loadPrivate(nextToken);
+      pushToast("success", "Password updated");
+    } catch (error: any) {
+      pushToast("error", error.message ?? "Failed to update password");
+      throw error;
     }
   };
 
@@ -214,6 +271,9 @@ export const useSportsbook = () => {
     setTransactions([]);
     setDepositRequests([]);
     setAdminDepositRequests([]);
+    setUserSavedWallets([]);
+    setWithdrawalRequests([]);
+    setAdminWithdrawalRequests([]);
     setAdminAnnouncements([]);
     persistToken("");
     persistAuthUser(null);
@@ -307,6 +367,89 @@ export const useSportsbook = () => {
       throw error;
     } finally {
       setIsRejectingDeposit(false);
+    }
+  };
+
+  const createUserWallet = async (payload: {
+    network: "TRC20" | "ERC20" | "BEP20";
+    walletAddress: string;
+    label?: string;
+  }) => {
+    if (!token) throw new Error("Login required.");
+    setIsCreatingUserWallet(true);
+    try {
+      await apiFetch("/wallets", {
+        method: "POST",
+        token,
+        body: {
+          type: "usdt",
+          network: payload.network,
+          walletAddress: payload.walletAddress,
+          label: payload.label ?? "",
+        },
+      });
+      await loadPrivate(token);
+      pushToast("success", "Withdrawal address saved");
+    } catch (error: any) {
+      pushToast("error", error.message ?? "Failed to save address");
+      throw error;
+    } finally {
+      setIsCreatingUserWallet(false);
+    }
+  };
+
+  const submitWithdrawal = async (payload: { userWalletId: string; amount: number }) => {
+    if (!token) throw new Error("Login required.");
+    setIsSubmittingWithdrawal(true);
+    try {
+      await apiFetch("/withdrawal-requests", {
+        method: "POST",
+        token,
+        body: payload,
+      });
+      await loadPrivate(token);
+      pushToast("success", "Withdrawal request submitted");
+    } catch (error: any) {
+      pushToast("error", error.message ?? "Failed to submit withdrawal");
+      throw error;
+    } finally {
+      setIsSubmittingWithdrawal(false);
+    }
+  };
+
+  const approveWithdrawal = async (id: string) => {
+    if (!token) throw new Error("Admin login required.");
+    setIsApprovingWithdrawal(true);
+    try {
+      await apiFetch(`/admin/withdrawal-requests/${id}/approve`, {
+        method: "PATCH",
+        token,
+      });
+      await loadPrivate(token);
+      pushToast("success", "Withdrawal approved; user balance debited");
+    } catch (error: any) {
+      pushToast("error", error.message ?? "Failed to approve withdrawal");
+      throw error;
+    } finally {
+      setIsApprovingWithdrawal(false);
+    }
+  };
+
+  const rejectWithdrawal = async (id: string) => {
+    if (!token) throw new Error("Admin login required.");
+    setIsRejectingWithdrawal(true);
+    try {
+      await apiFetch(`/admin/withdrawal-requests/${id}/reject`, {
+        method: "PATCH",
+        token,
+      });
+      await loadPrivate(token);
+      pushToast("success", "Withdrawal rejected");
+    } catch (error: any) {
+      pushToast("error", error.message ?? "Failed to reject withdrawal");
+      throw error;
+    } finally {
+      setIsRejectingWithdrawal(false);
     }
   };
 
@@ -508,6 +651,10 @@ export const useSportsbook = () => {
     isSubmittingDeposit,
     isApprovingDeposit,
     isRejectingDeposit,
+    isSubmittingWithdrawal,
+    isCreatingUserWallet,
+    isApprovingWithdrawal,
+    isRejectingWithdrawal,
     isCreatingPlatformWallet,
     isDeletingPlatformWallet,
     isCreatingAnnouncement,
@@ -522,6 +669,9 @@ export const useSportsbook = () => {
     adminPlatformWallets,
     depositRequests,
     adminDepositRequests,
+    userSavedWallets,
+    withdrawalRequests,
+    adminWithdrawalRequests,
     selections,
     stake,
     setStake,
@@ -529,6 +679,7 @@ export const useSportsbook = () => {
     potentialPayout,
     login,
     signup,
+    updatePassword,
     logout,
     loadPublic,
     loadPrivate,
@@ -537,6 +688,10 @@ export const useSportsbook = () => {
     submitDeposit,
     approveDeposit,
     rejectDeposit,
+    createUserWallet,
+    submitWithdrawal,
+    approveWithdrawal,
+    rejectWithdrawal,
     createAdminPlatformWallet,
     deleteAdminPlatformWallet,
     createAnnouncement,

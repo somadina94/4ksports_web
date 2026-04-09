@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AppShell from "@/src/components/layout/app-shell";
+import RequireAuth from "@/src/components/auth/require-auth";
 import { useSportsbook } from "@/src/hooks/useSportsbook";
 import { Badge } from "@/src/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
@@ -83,6 +84,7 @@ export default function TicketDetailPage() {
 
   return (
     <AppShell>
+      <RequireAuth>
       <div className="mb-4">
         <Link href="/tickets" className="text-sm text-zinc-400 hover:text-zinc-200">
           ← Back to tickets
@@ -177,6 +179,7 @@ export default function TicketDetailPage() {
           </Card>
         </>
       )}
+      </RequireAuth>
     </AppShell>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ClipboardList, ChevronUp } from "lucide-react";
 import { useSportsbook } from "@/src/hooks/useSportsbook";
@@ -17,8 +17,33 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
+type DateFilter = "all" | "today" | "tomorrow" | "dayAfter2";
+
+function localDateKey(ms: number): string {
+  const d = new Date(ms);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function localDateKeyForEvent(iso: string): string {
+  return localDateKey(new Date(iso).getTime());
+}
+
+function localDateKeyWithOffsetFromToday(offsetDays: number, from = new Date()): string {
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + offsetDays);
+  return localDateKey(d.getTime());
+}
+
+function weekdayShortForOffset(offsetDays: number, from = new Date()): string {
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + offsetDays);
+  return d.toLocaleDateString(undefined, { weekday: "short" });
+}
+
 export default function EventsBetSlipBoard() {
   const [mobileSlipOpen, setMobileSlipOpen] = useState(false);
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const {
     events,
     selections,
@@ -39,6 +64,15 @@ export default function EventsBetSlipBoard() {
     isLoadingPublic,
     loadPublic,
   } = useSportsbook();
+
+  const dayAfterWeekday = weekdayShortForOffset(2);
+
+  const filteredEvents = useMemo(() => {
+    if (dateFilter === "all") return events;
+    const offset = dateFilter === "today" ? 0 : dateFilter === "tomorrow" ? 1 : 2;
+    const key = localDateKeyWithOffsetFromToday(offset);
+    return events.filter((e) => localDateKeyForEvent(e.eventDate) === key);
+  }, [events, dateFilter]);
 
   const oddClass = (eventId: string, marketType: string, pick: string, line?: number) => {
     const active = selections.some(
@@ -123,6 +157,29 @@ export default function EventsBetSlipBoard() {
         <CardHeader>
           <CardTitle>Events & Odds</CardTitle>
           <CardDescription>Click odds to add to bet slip.</CardDescription>
+          <div className="flex flex-wrap gap-2 pt-3" role="group" aria-label="Filter by day">
+            {(
+              [
+                { id: "all" as const, label: "All" },
+                { id: "today" as const, label: "Today" },
+                { id: "tomorrow" as const, label: "Tomorrow" },
+                { id: "dayAfter2" as const, label: dayAfterWeekday },
+              ] satisfies { id: DateFilter; label: string }[]
+            ).map(({ id, label }) => (
+              <Button
+                key={id}
+                type="button"
+                size="sm"
+                variant={dateFilter === id ? "default" : "outline"}
+                className="shrink-0"
+                aria-pressed={dateFilter === id}
+                title={id === "dayAfter2" ? "Day after tomorrow" : undefined}
+                onClick={() => setDateFilter(id)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {isLoadingPublic && (
@@ -138,7 +195,12 @@ export default function EventsBetSlipBoard() {
               </div>
             </div>
           )}
-          {events.map((event) => (
+          {!isLoadingPublic && events.length > 0 && filteredEvents.length === 0 && (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              No games on this day. Try another day or All.
+            </p>
+          )}
+          {filteredEvents.map((event) => (
             <div key={event._id} className="rounded-xl border border-zinc-300 p-4 dark:border-zinc-800">
               <div className="mb-3 flex items-center justify-between">
                 <div>

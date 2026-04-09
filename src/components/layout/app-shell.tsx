@@ -4,9 +4,11 @@ import { useEffect, useState, type ComponentType, type PropsWithChildren } from 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  ArrowDownToLine,
   Calendar,
   Home,
   PiggyBank,
+  Settings,
   Shield,
   Ticket,
   Trophy,
@@ -17,6 +19,7 @@ import type { AuthUser } from "@/src/types/domain";
 import { Button } from "@/src/components/ui/button";
 import ThemeToggle from "@/src/components/theme-toggle";
 import AnnouncementTicker from "@/src/components/layout/announcement-ticker";
+import SiteFooter from "@/src/components/layout/site-footer";
 import {
   Sidebar,
   SidebarContent,
@@ -47,6 +50,8 @@ const menuItems: MenuItem[] = [
   { label: "Tickets", href: "/tickets", icon: Ticket },
   { label: "Wallet", href: "/wallet", icon: Wallet },
   { label: "Deposits", href: "/deposits", icon: PiggyBank },
+  { label: "Withdrawals", href: "/withdrawals", icon: ArrowDownToLine },
+  { label: "Settings", href: "/settings", icon: Settings },
   { label: "Admin", href: "/admin", icon: Shield, adminOnly: true },
 ];
 
@@ -117,8 +122,8 @@ export default function AppShell({ children }: PropsWithChildren) {
           <SidebarRail />
         </Sidebar>
 
-        <SidebarInset className="min-h-svh bg-transparent">
-          <div className="sticky top-0 z-30 border-b border-zinc-200/60 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/85">
+        <SidebarInset className="flex min-h-svh min-w-0 flex-col bg-transparent">
+          <div className="sticky top-0 z-30 min-w-0 w-full border-b border-zinc-200/60 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/85">
             <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 md:px-6">
               <SidebarTrigger className="-ml-1" />
               <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -150,6 +155,7 @@ export default function AppShell({ children }: PropsWithChildren) {
           <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 md:px-6">
             {children}
           </div>
+          <SiteFooter />
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
