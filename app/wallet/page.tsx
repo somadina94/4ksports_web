@@ -5,6 +5,18 @@ import { useSportsbook } from "@/src/hooks/useSportsbook";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
 
+const txTypeLabel = (type: string) => {
+  const map: Record<string, string> = {
+    deposit_credit: "Deposit",
+    first_deposit_bonus: "First deposit bonus (200%)",
+    bet_debit: "Bet",
+    bet_payout: "Payout",
+    bet_refund: "Refund",
+    withdrawal_debit: "Withdrawal",
+  };
+  return map[type] ?? type;
+};
+
 export default function WalletPage() {
   const { wallet, transactions } = useSportsbook();
   return (
@@ -26,7 +38,7 @@ export default function WalletPage() {
             <TableBody>
               {transactions.map((tx) => (
                 <TableRow key={tx._id}>
-                  <TableCell>{tx.type}</TableCell>
+                  <TableCell>{txTypeLabel(tx.type)}</TableCell>
                   <TableCell>{tx.amount}</TableCell>
                   <TableCell>{tx.balanceBefore}</TableCell>
                   <TableCell>{tx.balanceAfter}</TableCell>

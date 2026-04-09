@@ -9,6 +9,7 @@ import {
   readToken,
 } from "@/src/lib/api";
 import type {
+  Announcement,
   ApiResponse,
   AuthUser,
   BalanceTransaction,
@@ -58,6 +59,9 @@ export const useSportsbook = () => {
   const [isRejectingDeposit, setIsRejectingDeposit] = useState(false);
   const [isCreatingPlatformWallet, setIsCreatingPlatformWallet] = useState(false);
   const [isDeletingPlatformWallet, setIsDeletingPlatformWallet] = useState(false);
+  const [isCreatingAnnouncement, setIsCreatingAnnouncement] = useState(false);
+  const [adminAnnouncements, setAdminAnnouncements] = useState<Announcement[]>([]);
+  const [isDeletingAnnouncement, setIsDeletingAnnouncement] = useState(false);
 
   const pushToast = (type: ToastItem["type"], message: string) => {
     const id = `${Date.now()}-${Math.random()}`;
@@ -98,7 +102,15 @@ export const useSportsbook = () => {
   };
 
   const loadPrivate = async (authToken: string) => {
-    const [ticketsRes, walletRes, txRes, myDepRes, adminDepRes, adminWalletsRes] = await Promise.all([
+    const [
+      ticketsRes,
+      walletRes,
+      txRes,
+      myDepRes,
+      adminDepRes,
+      adminWalletsRes,
+      adminAnnouncementsRes,
+    ] = await Promise.all([
       apiFetch<ApiResponse<{ tickets: Ticket[] }>>("/tickets/me", { token: authToken }),
       apiFetch<ApiResponse<{ wallet: BalanceWallet }>>("/balance-wallet/me", {
         token: authToken,
@@ -118,6 +130,9 @@ export const useSportsbook = () => {
       apiFetch<ApiResponse<{ wallets: PlatformWallet[] }>>("/admin/platform-wallets", {
         token: authToken,
       }).catch(() => ({ status: "fail", data: { wallets: [] } })),
+      apiFetch<ApiResponse<{ announcements: Announcement[] }>>("/admin/announcements", {
+        token: authToken,
+      }).catch(() => ({ status: "fail", data: { announcements: [] } })),
     ]);
     setTickets(ticketsRes.data.tickets);
     setWallet(walletRes.data.wallet);
@@ -125,6 +140,7 @@ export const useSportsbook = () => {
     setDepositRequests(myDepRes.data.requests);
     setAdminDepositRequests(adminDepRes.data.requests);
     setAdminPlatformWallets(adminWalletsRes.data.wallets);
+    setAdminAnnouncements(adminAnnouncementsRes.data.announcements ?? []);
   };
 
   const login = async (username: string, password: string) => {
@@ -187,6 +203,7 @@ export const useSportsbook = () => {
     setTransactions([]);
     setDepositRequests([]);
     setAdminDepositRequests([]);
+    setAdminAnnouncements([]);
     persistToken("");
     persistAuthUser(null);
   };
@@ -309,6 +326,50 @@ export const useSportsbook = () => {
       throw error;
     } finally {
       setIsCreatingPlatformWallet(false);
+    }
+  };
+
+  const createAnnouncement = async (body: string, expiresAtLocal: string) => {
+    if (!token) throw new Error("Admin login required.");
+    setIsCreatingAnnouncement(true);
+    try {
+      const expiresAt = new Date(expiresAtLocal).toISOString();
+      await apiFetch("/admin/announcements", {
+        method: "POST",
+        token,
+        body: { body, expiresAt },
+      });
+      await loadPrivate(token);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("announcements:refresh"));
+      }
+      pushToast("success", "Announcement published");
+    } catch (error: any) {
+      pushToast("error", error.message ?? "Failed to publish announcement");
+      throw error;
+    } finally {
+      setIsCreatingAnnouncement(false);
+    }
+  };
+
+  const deleteAnnouncement = async (id: string) => {
+    if (!token) throw new Error("Admin login required.");
+    setIsDeletingAnnouncement(true);
+    try {
+      await apiFetch(`/admin/announcements/${id}`, {
+        method: "DELETE",
+        token,
+      });
+      await loadPrivate(token);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("announcements:refresh"));
+      }
+      pushToast("success", "Announcement removed");
+    } catch (error: any) {
+      pushToast("error", error.message ?? "Failed to delete announcement");
+      throw error;
+    } finally {
+      setIsDeletingAnnouncement(false);
     }
   };
 
@@ -438,6 +499,9 @@ export const useSportsbook = () => {
     isRejectingDeposit,
     isCreatingPlatformWallet,
     isDeletingPlatformWallet,
+    isCreatingAnnouncement,
+    isDeletingAnnouncement,
+    adminAnnouncements,
     isLoadingPublic,
     events,
     tickets,
@@ -463,6 +527,8 @@ export const useSportsbook = () => {
     rejectDeposit,
     createAdminPlatformWallet,
     deleteAdminPlatformWallet,
+    createAnnouncement,
+    deleteAnnouncement,
     selectOdd,
     clearSelection,
     removeSelection,

@@ -27,7 +27,10 @@ export default function DepositsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Create Deposit Request</CardTitle>
-          <CardDescription>Select a platform wallet address and submit payment proof.</CardDescription>
+          <CardDescription>
+            Select a platform wallet address and submit payment proof. Your first approved deposit
+            receives an extra 200% of that amount as a welcome bonus (credited on top of the deposit).
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <select

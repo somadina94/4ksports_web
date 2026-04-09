@@ -74,3 +74,10 @@ export type DepositRequest = {
   status: string;
   createdAt: string;
 };
+
+export type Announcement = {
+  _id: string;
+  body: string;
+  expiresAt: string;
+  createdAt?: string;
+};

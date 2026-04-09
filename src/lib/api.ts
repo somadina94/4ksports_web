@@ -37,6 +37,9 @@ export const apiFetch = async <T>(
   });
 
   const raw = await response.text();
+  if (response.status === 204) {
+    return {} as T;
+  }
   let data: any = null;
   try {
     data = raw ? JSON.parse(raw) : {};

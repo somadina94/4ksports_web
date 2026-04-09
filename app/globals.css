@@ -6,6 +6,15 @@
   --bg-grad-1: #dbeafe;
   --bg-grad-2: #e9d5ff;
   --bg-grad-3: #fef9c3;
+  /* shadcn sidebar (HSL channels for hsl(var(--token))) */
+  --sidebar: 210 40% 98%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-primary: 239 84% 67%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 40% 94%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 214 32% 91%;
+  --sidebar-ring: 239 84% 67%;
 }
 
 .dark {
@@ -14,11 +23,27 @@
   --bg-grad-1: #1e1b4b;
   --bg-grad-2: #0f172a;
   --bg-grad-3: #052e16;
+  --sidebar: 222 47% 11%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-primary: 239 84% 67%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 217 33% 17%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-border: 217 33% 17%;
+  --sidebar-ring: 239 84% 67%;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -30,4 +55,38 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   min-height: 100%;
+}
+
+/* Phase 1: single line — centered in the bar, then scrolls left until off-screen. */
+@keyframes announcement-intro {
+  from {
+    transform: translateX(calc((var(--cw) - var(--sw)) / 2));
+  }
+  to {
+    transform: translateX(calc((var(--cw) - var(--sw)) / 2 - var(--sw)));
+  }
+}
+
+.announcement-intro-track {
+  animation: announcement-intro 12s linear forwards;
+  transform-origin: left center;
+}
+
+/* Phase 2: duplicated line — enters from off-screen right, loops faster. */
+@keyframes announcement-loop {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.announcement-loop-track {
+  display: flex;
+  width: max-content;
+  flex-shrink: 0;
+  margin-left: 100%;
+  transform-origin: left center;
+  animation: announcement-loop 22s linear infinite;
 }
