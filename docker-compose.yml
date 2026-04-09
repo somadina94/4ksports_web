@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  4ksports-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_BACKEND_ORIGIN=${NEXT_PUBLIC_BACKEND_ORIGIN}
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+
+    container_name: 4ksports-web
+    ports:
+      - "4701:4701"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - 4ksports-network
+
+networks:
+  4ksports-network:
+    driver: bridge
