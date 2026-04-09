@@ -39,6 +39,36 @@ export type Ticket = {
   potentialPayout: number;
   status: string;
   placedAt: string;
+  settledAt?: string;
+};
+
+export type TicketSelectionSnapshot = {
+  eventDate: string;
+  homeTeam: string;
+  awayTeam: string;
+  marketType: string;
+  pick: string;
+  line?: number | null;
+};
+
+export type TicketEventSummary = {
+  status: string;
+  scores: { home: number; away: number };
+  homeTeam: string;
+  awayTeam: string;
+};
+
+export type TicketSelectionDetail = {
+  _id: string;
+  eventId: string;
+  marketType: string;
+  pick: string;
+  line?: number | null;
+  odds: number;
+  status: string;
+  snapshot: TicketSelectionSnapshot;
+  settledAt?: string;
+  event: TicketEventSummary | null;
 };
 
 export type BalanceWallet = {

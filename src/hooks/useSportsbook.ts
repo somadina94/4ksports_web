@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   apiFetch,
   persistAuthUser,
@@ -18,6 +18,7 @@ import type {
   EventItem,
   PlatformWallet,
   Ticket,
+  TicketSelectionDetail,
 } from "@/src/types/domain";
 
 export type SelectionDraft = {
@@ -100,6 +101,16 @@ export const useSportsbook = () => {
       setIsLoadingPublic(false);
     }
   };
+
+  const loadTicketDetail = useCallback(
+    async (ticketId: string) => {
+      if (!token) throw new Error("Login required.");
+      return apiFetch<
+        ApiResponse<{ ticket: Ticket; selections: TicketSelectionDetail[] }>
+      >(`/tickets/${ticketId}`, { token });
+    },
+    [token],
+  );
 
   const loadPrivate = async (authToken: string) => {
     const [
@@ -521,6 +532,7 @@ export const useSportsbook = () => {
     logout,
     loadPublic,
     loadPrivate,
+    loadTicketDetail,
     placeSingleTicket,
     submitDeposit,
     approveDeposit,
