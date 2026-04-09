@@ -40,7 +40,7 @@ export default function AppShell({ children }: PropsWithChildren) {
     <div className="min-h-screen bg-transparent text-zinc-900 dark:text-zinc-100">
       <header className="sticky top-0 z-20 border-b border-zinc-200/60 bg-white/75 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <h1 className="text-xl font-bold tracking-tight">4K Sportsbook</h1>
+          <h1 className="text-xl font-bold tracking-tight">4K Sports</h1>
           <p className="text-xs text-zinc-600 dark:text-zinc-400">
             {user ? `${user.username} (${user.role})` : "Not logged in"}
           </p>
