@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   apiFetch,
   persistAuthUser,
@@ -33,12 +34,6 @@ export type SelectionDraft = {
   label: string;
 };
 
-type ToastItem = {
-  id: string;
-  type: "success" | "error" | "info";
-  message: string;
-};
-
 export const useSportsbook = () => {
   const [token, setToken] = useState("");
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -59,7 +54,6 @@ export const useSportsbook = () => {
   );
   const [selections, setSelections] = useState<SelectionDraft[]>([]);
   const [stake, setStake] = useState("10");
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const [isPlacingTicket, setIsPlacingTicket] = useState(false);
   const [isSubmittingDeposit, setIsSubmittingDeposit] = useState(false);
@@ -74,18 +68,6 @@ export const useSportsbook = () => {
   const [isCreatingAnnouncement, setIsCreatingAnnouncement] = useState(false);
   const [adminAnnouncements, setAdminAnnouncements] = useState<Announcement[]>([]);
   const [isDeletingAnnouncement, setIsDeletingAnnouncement] = useState(false);
-
-  const pushToast = (type: ToastItem["type"], message: string) => {
-    const id = `${Date.now()}-${Math.random()}`;
-    setToasts((prev) => [...prev, { id, type, message }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 4000);
-  };
-
-  const dismissToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   const totalOdds = useMemo(() => {
     if (!selections.length) return 0;
@@ -196,10 +178,10 @@ export const useSportsbook = () => {
       persistToken(res.token);
       persistAuthUser(res.data.user);
       await loadPrivate(res.token);
-      pushToast("success", `Welcome back ${res.data.user.username}`);
+      toast.success( `Welcome back ${res.data.user.username}`);
       return res.data.user;
     } catch (error: any) {
-      pushToast("error", error.message ?? "Login failed");
+      toast.error( error.message ?? "Login failed");
       throw error;
     } finally {
       setIsAuthSubmitting(false);
@@ -230,9 +212,9 @@ export const useSportsbook = () => {
       }
       const nextToken = res.token ?? token;
       await loadPrivate(nextToken);
-      pushToast("success", "Password updated");
+      toast.success( "Password updated");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to update password");
+      toast.error( error.message ?? "Failed to update password");
       throw error;
     }
   };
@@ -253,10 +235,10 @@ export const useSportsbook = () => {
       persistToken(res.token);
       persistAuthUser(res.data.user);
       await loadPrivate(res.token);
-      pushToast("success", "Account created successfully");
+      toast.success( "Account created successfully");
       return res.data.user;
     } catch (error: any) {
-      pushToast("error", error.message ?? "Signup failed");
+      toast.error( error.message ?? "Signup failed");
       throw error;
     } finally {
       setIsAuthSubmitting(false);
@@ -300,9 +282,9 @@ export const useSportsbook = () => {
       });
       await loadPrivate(token);
       setSelections([]);
-      pushToast("success", "Ticket placed successfully");
+      toast.success( "Ticket placed successfully");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to place ticket");
+      toast.error( error.message ?? "Failed to place ticket");
       throw error;
     } finally {
       setIsPlacingTicket(false);
@@ -325,9 +307,9 @@ export const useSportsbook = () => {
         body: payload,
       });
       await loadPrivate(token);
-      pushToast("success", "Deposit request submitted");
+      toast.success( "Deposit request submitted");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to submit deposit");
+      toast.error( error.message ?? "Failed to submit deposit");
       throw error;
     } finally {
       setIsSubmittingDeposit(false);
@@ -343,9 +325,9 @@ export const useSportsbook = () => {
         token,
       });
       await loadPrivate(token);
-      pushToast("success", "Deposit approved");
+      toast.success( "Deposit approved");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to approve deposit");
+      toast.error( error.message ?? "Failed to approve deposit");
       throw error;
     } finally {
       setIsApprovingDeposit(false);
@@ -361,9 +343,9 @@ export const useSportsbook = () => {
         token,
       });
       await loadPrivate(token);
-      pushToast("success", "Deposit rejected");
+      toast.success( "Deposit rejected");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to reject deposit");
+      toast.error( error.message ?? "Failed to reject deposit");
       throw error;
     } finally {
       setIsRejectingDeposit(false);
@@ -389,9 +371,9 @@ export const useSportsbook = () => {
         },
       });
       await loadPrivate(token);
-      pushToast("success", "Withdrawal address saved");
+      toast.success( "Withdrawal address saved");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to save address");
+      toast.error( error.message ?? "Failed to save address");
       throw error;
     } finally {
       setIsCreatingUserWallet(false);
@@ -408,9 +390,9 @@ export const useSportsbook = () => {
         body: payload,
       });
       await loadPrivate(token);
-      pushToast("success", "Withdrawal request submitted");
+      toast.success( "Withdrawal request submitted");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to submit withdrawal");
+      toast.error( error.message ?? "Failed to submit withdrawal");
       throw error;
     } finally {
       setIsSubmittingWithdrawal(false);
@@ -426,9 +408,9 @@ export const useSportsbook = () => {
         token,
       });
       await loadPrivate(token);
-      pushToast("success", "Withdrawal approved; user balance debited");
+      toast.success( "Withdrawal approved; user balance debited");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to approve withdrawal");
+      toast.error( error.message ?? "Failed to approve withdrawal");
       throw error;
     } finally {
       setIsApprovingWithdrawal(false);
@@ -444,9 +426,9 @@ export const useSportsbook = () => {
         token,
       });
       await loadPrivate(token);
-      pushToast("success", "Withdrawal rejected");
+      toast.success( "Withdrawal rejected");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to reject withdrawal");
+      toast.error( error.message ?? "Failed to reject withdrawal");
       throw error;
     } finally {
       setIsRejectingWithdrawal(false);
@@ -474,9 +456,9 @@ export const useSportsbook = () => {
       });
       await loadPublic();
       await loadPrivate(token);
-      pushToast("success", "Platform wallet created");
+      toast.success( "Platform wallet created");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to create wallet");
+      toast.error( error.message ?? "Failed to create wallet");
       throw error;
     } finally {
       setIsCreatingPlatformWallet(false);
@@ -497,9 +479,9 @@ export const useSportsbook = () => {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("announcements:refresh"));
       }
-      pushToast("success", "Announcement published");
+      toast.success( "Announcement published");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to publish announcement");
+      toast.error( error.message ?? "Failed to publish announcement");
       throw error;
     } finally {
       setIsCreatingAnnouncement(false);
@@ -518,9 +500,9 @@ export const useSportsbook = () => {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("announcements:refresh"));
       }
-      pushToast("success", "Announcement removed");
+      toast.success( "Announcement removed");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to delete announcement");
+      toast.error( error.message ?? "Failed to delete announcement");
       throw error;
     } finally {
       setIsDeletingAnnouncement(false);
@@ -537,9 +519,9 @@ export const useSportsbook = () => {
       });
       await loadPublic();
       await loadPrivate(token);
-      pushToast("success", "Platform wallet deleted");
+      toast.success( "Platform wallet deleted");
     } catch (error: any) {
-      pushToast("error", error.message ?? "Failed to delete wallet");
+      toast.error( error.message ?? "Failed to delete wallet");
       throw error;
     } finally {
       setIsDeletingPlatformWallet(false);
@@ -644,8 +626,6 @@ export const useSportsbook = () => {
     user,
     errorMessage,
     setErrorMessage,
-    toasts,
-    dismissToast,
     isAuthSubmitting,
     isPlacingTicket,
     isSubmittingDeposit,

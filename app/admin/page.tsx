@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src
 import { Button } from "@/src/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/src/components/ui/input";
-import ToastStack from "@/src/components/ui/toast-stack";
 
 export default function AdminPage() {
   const {
@@ -32,8 +31,6 @@ export default function AdminPage() {
     isDeletingPlatformWallet,
     isCreatingAnnouncement,
     isDeletingAnnouncement,
-    toasts,
-    dismissToast,
   } = useSportsbook();
   const [walletForm, setWalletForm] = useState({
     label: "",
@@ -68,7 +65,6 @@ export default function AdminPage() {
 
   return (
     <AppShell>
-      <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <Card>
         <CardHeader>
           <CardTitle>Announcements (ticker)</CardTitle>

@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import ToastStack from "@/src/components/ui/toast-stack";
 import {
   Sheet,
   SheetContent,
@@ -57,8 +56,6 @@ export default function EventsBetSlipBoard() {
     placeSingleTicket,
     setErrorMessage,
     errorMessage,
-    toasts,
-    dismissToast,
     isPlacingTicket,
     user,
     isLoadingPublic,
@@ -152,7 +149,6 @@ export default function EventsBetSlipBoard() {
 
   return (
     <div className="grid gap-6 pb-28 lg:grid-cols-12 lg:pb-6">
-      <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <Card className="lg:col-span-8">
         <CardHeader>
           <CardTitle>Events & Odds</CardTitle>

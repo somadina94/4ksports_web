@@ -8,11 +8,10 @@ import { useSportsbook } from "@/src/hooks/useSportsbook";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import ToastStack from "@/src/components/ui/toast-stack";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, signup, isAuthSubmitting, toasts, dismissToast } = useSportsbook();
+  const { login, signup, isAuthSubmitting } = useSportsbook();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +48,6 @@ export default function LoginPage() {
 
   return (
     <AppShell>
-      <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <Card className="max-w-xl">
         <CardHeader>
           <CardTitle>{mode === "login" ? "Login" : "Signup"}</CardTitle>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import AppShell from "@/src/components/layout/app-shell";
 import RequireAuth from "@/src/components/auth/require-auth";
 import { useSportsbook } from "@/src/hooks/useSportsbook";
@@ -8,12 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
-import ToastStack from "@/src/components/ui/toast-stack";
 import { MAX_DEPOSIT_AMOUNT, MIN_DEPOSIT_AMOUNT } from "@/src/lib/depositLimits";
 
 export default function DepositsPage() {
-  const { platformWallets, depositRequests, submitDeposit, isSubmittingDeposit, toasts, dismissToast } =
-    useSportsbook();
+  const { platformWallets, depositRequests, submitDeposit, isSubmittingDeposit } = useSportsbook();
   const [form, setForm] = useState({
     platformWalletId: "",
     amount: "20",
@@ -33,7 +32,6 @@ export default function DepositsPage() {
 
   return (
     <AppShell>
-      <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <RequireAuth>
         <Card>
           <CardHeader>
@@ -70,7 +68,14 @@ export default function DepositsPage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => navigator.clipboard.writeText(selected.walletAddress)}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(selected.walletAddress);
+                      toast.success("Wallet address copied to clipboard");
+                    } catch {
+                      toast.error("Could not copy address. Try copying manually.");
+                    }
+                  }}
                 >
                   Copy Wallet Address
                 </Button>

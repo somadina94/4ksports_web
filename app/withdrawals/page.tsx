@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
-import ToastStack from "@/src/components/ui/toast-stack";
 import type { UserSavedWallet } from "@/src/types/domain";
 
 function walletOptionLabel(w: UserSavedWallet) {
@@ -25,8 +24,6 @@ export default function WithdrawalsPage() {
     submitWithdrawal,
     isCreatingUserWallet,
     isSubmittingWithdrawal,
-    toasts,
-    dismissToast,
   } = useSportsbook();
 
   const [addForm, setAddForm] = useState({
@@ -46,7 +43,6 @@ export default function WithdrawalsPage() {
 
   return (
     <AppShell>
-      <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <RequireAuth>
       <Card>
         <CardHeader>
