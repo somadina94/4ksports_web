@@ -1,5 +1,7 @@
 version: "3.8"
 
+name: 4ksports-web
+
 services:
   4ksports-web:
     build:
